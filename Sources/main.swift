@@ -60,7 +60,8 @@ func run(command: String) {
 
 // MARK: - Main loop
 
-func connectAndListen(config: Config) async {
+@discardableResult
+func connectAndListen(config: Config) async -> Bool {
     let port = config.port ?? 3032
     let client = OSCTCPClient(host: config.host, port: port)
     let space = OSCAddressSpace()
@@ -87,17 +88,16 @@ func connectAndListen(config: Config) async {
         case .connected:
             print("Connected. Listening for \(config.rules.count) rule(s).")
             didConnect = true
-        case .failed(let err):
-            print("Connection failed: \(err)")
-            return
+        case .failed:
+            return false
         case .disconnected:
-            return
+            return false
         case .connecting:
             break
         }
         if didConnect { break }
     }
-    guard didConnect else { return }
+    guard didConnect else { return false }
 
     // Process packets until the connection closes
     for await packet in packets {
@@ -105,6 +105,7 @@ func connectAndListen(config: Config) async {
     }
 
     print("Connection closed.")
+    return true
 }
 
 func main() async {
@@ -146,10 +147,16 @@ func main() async {
 
     print("Loaded \(config.rules.count) rule(s).")
 
-    // Reconnect loop
+    // Reconnect loop — only log on first failure, go quiet until connected
+    var failureLogged = false
     while true {
-        await connectAndListen(config: config)
-        print("Reconnecting in 5 seconds...")
+        let connected = await connectAndListen(config: config)
+        if connected {
+            failureLogged = false
+        } else if !failureLogged {
+            print("Could not connect to \(config.host):\(config.port ?? 3032). Retrying silently...")
+            failureLogged = true
+        }
         try? await Task.sleep(nanoseconds: 5_000_000_000)
     }
 }
