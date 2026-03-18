@@ -37,6 +37,11 @@ fi
 # Install plist with real HOME path substituted
 sed "s|__HOME__|$HOME|g" "$SCRIPT_DIR/com.taylorcjensen.osc-runner.plist" > "$PLIST_DST"
 
+# Install newsyslog config for log rotation (1MB max, 5 rotated copies)
+NEWSYSLOG_CONF="/etc/newsyslog.d/osc-runner.conf"
+sed "s|__HOME__|$HOME|g" "$SCRIPT_DIR/osc-runner.newsyslog.conf" | sudo tee "$NEWSYSLOG_CONF" > /dev/null
+echo "Log rotation configured at $NEWSYSLOG_CONF"
+
 # Load (or reload) the service
 launchctl unload "$PLIST_DST" 2>/dev/null || true
 launchctl load "$PLIST_DST"
