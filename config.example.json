@@ -1,0 +1,18 @@
+{
+  "host": "192.168.1.100",
+  "port": 3032,
+  "rules": [
+    {
+      "address": "/show-runner/poe/on",
+      "command": "/usr/local/bin/my-script --on"
+    },
+    {
+      "address": "/show-runner/poe/off",
+      "command": "/usr/local/bin/my-script --off"
+    },
+    {
+      "address": "/eos/out/event/cue/*/*/fire",
+      "command": "/usr/local/bin/my-script --cue {4} {5}"
+    }
+  ]
+}

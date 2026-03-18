@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.taylorcjensen.osc-runner</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>__HOME__/services/osc-runner/osc-runner</string>
+        <string>__HOME__/services/osc-runner/config.json</string>
+    </array>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>__HOME__/services/osc-runner/osc-runner.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>__HOME__/services/osc-runner/osc-runner.log</string>
+</dict>
+</plist>
