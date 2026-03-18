@@ -5,17 +5,25 @@ LABEL="com.taylorcjensen.osc-runner"
 SERVICE_DIR="$HOME/services/osc-runner"
 PLIST_DST="$HOME/Library/LaunchAgents/$LABEL.plist"
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+REPO="https://github.com/taylorcjensen/osc-runner.git"
 
 echo "Installing osc-runner..."
 
 # Create service directory
 mkdir -p "$SERVICE_DIR"
+mkdir -p "$HOME/Library/LaunchAgents"
 
-# Copy binary (skip if already in place)
-if [ "$SCRIPT_DIR/osc-runner" != "$SERVICE_DIR/osc-runner" ]; then
-    cp "$SCRIPT_DIR/osc-runner" "$SERVICE_DIR/osc-runner"
-fi
+# Build from source to avoid code signing issues with downloaded binaries
+echo "Building from source (this takes ~30 seconds)..."
+BUILD_DIR=$(mktemp -d)
+git clone --quiet "$REPO" "$BUILD_DIR/osc-runner"
+cd "$BUILD_DIR/osc-runner"
+swift build -c release --quiet
+cp ".build/release/osc-runner" "$SERVICE_DIR/osc-runner"
 chmod +x "$SERVICE_DIR/osc-runner"
+cd /
+rm -rf "$BUILD_DIR"
+echo "Build complete."
 
 # Copy example config if none exists
 if [ ! -f "$SERVICE_DIR/config.json" ]; then
