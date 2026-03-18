@@ -11,8 +11,10 @@ echo "Installing osc-runner..."
 # Create service directory
 mkdir -p "$SERVICE_DIR"
 
-# Copy binary
-cp "$SCRIPT_DIR/osc-runner" "$SERVICE_DIR/osc-runner"
+# Copy binary (skip if already in place)
+if [ "$SCRIPT_DIR/osc-runner" != "$SERVICE_DIR/osc-runner" ]; then
+    cp "$SCRIPT_DIR/osc-runner" "$SERVICE_DIR/osc-runner"
+fi
 chmod +x "$SERVICE_DIR/osc-runner"
 
 # Copy example config if none exists
