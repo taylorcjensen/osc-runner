@@ -1,6 +1,9 @@
 import Foundation
 import OSCFoundation
 
+// Disable stdout buffering so logs appear immediately when running under launchd
+setbuf(stdout, nil)
+
 // MARK: - Config
 
 struct Rule: Decodable, Sendable {
