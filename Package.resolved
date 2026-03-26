@@ -6,8 +6,8 @@
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/taylorcjensen/OSCFoundation.git",
       "state" : {
-        "revision" : "2daee149d8f2ba488771b5aefff17a82d9f04625",
-        "version" : "1.0.2"
+        "revision" : "a315f0b007649698cdaf65b53990af8bae09034d",
+        "version" : "1.0.3"
       }
     }
   ],

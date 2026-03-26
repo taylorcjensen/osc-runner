@@ -89,15 +89,20 @@ func connectAndListen(config: Config) async -> Bool {
             print("Connected. Listening for \(config.rules.count) rule(s).")
             didConnect = true
         case .failed:
+            await client.disconnect()
             return false
         case .disconnected:
+            await client.disconnect()
             return false
         case .connecting:
             break
         }
         if didConnect { break }
     }
-    guard didConnect else { return false }
+    guard didConnect else {
+        await client.disconnect()
+        return false
+    }
 
     // Process packets until the connection closes
     for await packet in packets {
@@ -105,6 +110,7 @@ func connectAndListen(config: Config) async -> Bool {
     }
 
     print("Connection closed.")
+    await client.disconnect()
     return true
 }
 
