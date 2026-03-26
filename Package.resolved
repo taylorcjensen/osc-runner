@@ -1,13 +1,13 @@
 {
-  "originHash" : "0d03b9456543cbbfe669dcdf62d04294f627dec45edea0c6e5b489f36b48b771",
+  "originHash" : "06b7b407e81e07c7e98209c4891975bea2ffa2b48520cfb4e2b3ccfca574e6ac",
   "pins" : [
     {
       "identity" : "oscfoundation",
       "kind" : "remoteSourceControl",
       "location" : "https://github.com/taylorcjensen/OSCFoundation.git",
       "state" : {
-        "revision" : "5c390f4851286010472eccea4f1b7663bdbed5d7",
-        "version" : "1.0.4"
+        "revision" : "549e95c25f3023235343c269ce601b93cb433836",
+        "version" : "1.0.5"
       }
     }
   ],

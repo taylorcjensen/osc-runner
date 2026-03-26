@@ -94,7 +94,7 @@ func connectAndListen(config: Config) async -> Bool {
         case .disconnected:
             await client.disconnect()
             return false
-        case .connecting:
+        case .connecting, .waiting:
             break
         }
         if didConnect { break }
