@@ -60,10 +60,63 @@ func run(command: String) {
 
 // MARK: - Main loop
 
+private actor ConnectionLifecycle {
+    private enum Status {
+        case connecting
+        case connected
+        case stopped
+    }
+
+    private var status: Status = .connecting
+    private var waiters: [CheckedContinuation<Bool, Never>] = []
+
+    func markConnected() {
+        guard status == .connecting else { return }
+        status = .connected
+        for waiter in waiters {
+            waiter.resume(returning: true)
+        }
+        waiters.removeAll()
+    }
+
+    func markStopped() {
+        guard status != .stopped else { return }
+        let shouldResumeFailure = status == .connecting
+        status = .stopped
+        if shouldResumeFailure {
+            for waiter in waiters {
+                waiter.resume(returning: false)
+            }
+            waiters.removeAll()
+        }
+    }
+
+    func waitUntilConnectedOrStopped() async -> Bool {
+        switch status {
+        case .connected:
+            return true
+        case .stopped:
+            return false
+        case .connecting:
+            return await withCheckedContinuation { continuation in
+                waiters.append(continuation)
+            }
+        }
+    }
+}
+
 @discardableResult
 func connectAndListen(config: Config) async -> Bool {
     let port = config.port ?? 3032
-    let client = OSCTCPClient(host: config.host, port: port)
+    let client = OSCTCPClient(
+        host: config.host,
+        port: port,
+        connectionTimeout: 5,
+        enableKeepalive: true,
+        keepaliveIdle: 15,
+        keepaliveInterval: 5,
+        keepaliveCount: 3
+    )
     let space = OSCAddressSpace()
 
     for rule in config.rules {
@@ -75,41 +128,44 @@ func connectAndListen(config: Config) async -> Bool {
         }
     }
 
-    print("Connecting to \(config.host):\(port)...")
     await client.connect()
 
     let stateUpdates = await client.stateUpdates
     let packets = await client.packets
+    let lifecycle = ConnectionLifecycle()
 
-    // Wait until connected (or fail out)
-    var didConnect = false
-    for await state in stateUpdates {
-        switch state {
-        case .connected:
-            print("Connected. Listening for \(config.rules.count) rule(s).")
-            didConnect = true
-        case .failed:
-            await client.disconnect()
-            return false
-        case .disconnected:
-            await client.disconnect()
-            return false
-        case .connecting, .waiting:
-            break
+    let stateTask = Task {
+        for await state in stateUpdates {
+            switch state {
+            case .connected:
+                await lifecycle.markConnected()
+            case .failed, .disconnected, .waiting:
+                await lifecycle.markStopped()
+                await client.disconnect()
+                return
+            case .connecting:
+                break
+            }
         }
-        if didConnect { break }
+
+        await lifecycle.markStopped()
     }
+
+    let didConnect = await lifecycle.waitUntilConnectedOrStopped()
     guard didConnect else {
+        stateTask.cancel()
         await client.disconnect()
         return false
     }
 
-    // Process packets until the connection closes
+    print("Connected. Listening for \(config.rules.count) rule(s).")
+
     for await packet in packets {
         space.dispatch(packet)
     }
 
     print("Connection closed.")
+    stateTask.cancel()
     await client.disconnect()
     return true
 }

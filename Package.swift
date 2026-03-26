@@ -8,7 +8,7 @@ let package = Package(
         .macOS(.v15),
     ],
     dependencies: [
-        .package(url: "https://github.com/taylorcjensen/OSCFoundation.git", from: "1.0.5"),
+        .package(url: "https://github.com/taylorcjensen/OSCFoundation.git", from: "1.0.6"),
     ],
     targets: [
         .executableTarget(
